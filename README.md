@@ -39,10 +39,15 @@ This repository is scaffolded for planning and implementation. Dependency instal
 2. Start PostgreSQL and Redis via Docker Compose.
 3. Run the web app and API locally.
 
-## Deliverables
+## 📚 Technical Deliverables
 
-- [System Architecture](d:\Intern Tracker\docs\system-architecture.md)
-- [Database Schema](d:\Intern Tracker\docs\database-schema.md)
-- [API Endpoints](d:\Intern Tracker\docs\api-endpoints.md)
-- [UI Wireframes](d:\Intern Tracker\docs\ui-wireframes.md)
-- [Development Plan](d:\Intern Tracker\docs\development-plan.md)
+- [System Architecture](docs/system-architecture.md)
+- [Database Schema](docs/database-schema.md)
+- [API Endpoints Specification](docs/api-endpoints.md)
+- [UI Wireframes & Component Specs](docs/ui-wireframes.md)
+- [Development Roadmap](docs/development-plan.md)
+- [Security & Threat Model](docs/SECURITY.md)
+
+## 📜 License
+
+Licensed under the [MIT License](LICENSE).
