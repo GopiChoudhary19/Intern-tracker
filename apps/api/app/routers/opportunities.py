@@ -1,17 +1,19 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, status, Response
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy.orm import Session, joinedload
 
-from app.demo_store import DEMO_STORE
 from app.db import get_db
+from app.demo_store import DEMO_STORE
 from app.deps import get_current_user
 from app.models import Opportunity, User
 from app.schemas import OpportunityDetail, OpportunityListResponse
 from app.services import (
     get_recommended_opportunities,
-    list_opportunities as fetch_opportunities,
     to_opportunity_detail,
     to_opportunity_summary,
     use_demo_store,
+)
+from app.services import (
+    list_opportunities as fetch_opportunities,
 )
 
 router = APIRouter(tags=["opportunities"])

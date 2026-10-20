@@ -1,0 +1,3 @@
+[lint]
+# FastAPI declares dependencies as Depends(...) defaults by design.
+extend-ignore = ["B008"]

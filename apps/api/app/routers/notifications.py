@@ -4,8 +4,8 @@ from fastapi import APIRouter, Depends
 from sqlalchemy import select
 from sqlalchemy.orm import Session, joinedload
 
-from app.demo_store import DEMO_STORE
 from app.db import get_db
+from app.demo_store import DEMO_STORE
 from app.deps import get_current_user
 from app.models import Application, Opportunity, SavedSearch, User
 from app.schemas import NotificationItem, NotificationsResponse

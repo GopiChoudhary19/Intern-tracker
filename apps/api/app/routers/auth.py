@@ -1,18 +1,20 @@
 import json
 import secrets
-import urllib.request
 import urllib.error
+import urllib.request
 from datetime import UTC, datetime, timedelta
 
-from fastapi import APIRouter, Depends, Header, HTTPException, status, BackgroundTasks
+from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException, status
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
+from app.audit_log import log_auth_event
 from app.config import settings
-from app.demo_store import DEMO_STORE
 from app.db import get_db
+from app.demo_store import DEMO_STORE
 from app.deps import extract_bearer_token, get_current_user
 from app.models import AuthChallenge
+from app.rate_limiter import check_rate_limit
 from app.schemas import (
     AuthProvider,
     AuthProvidersResponse,
@@ -32,8 +34,6 @@ from app.services import (
     to_user_profile_response,
     use_demo_store,
 )
-from app.rate_limiter import check_rate_limit
-from app.audit_log import log_auth_event
 
 router = APIRouter(tags=["auth"])
 
@@ -64,7 +64,7 @@ def send_resend_otp(to_email: str, code: str):
         print(f"System: Resend HTTP Error! {e.code} API Rejected the request. Details: {error_info}")
         if e.code == 403:
              print("System: 403 Forbidden - Ensure you are sending the email to the exact address you registered at resend.com with!")
-    except Exception as e:
+    except OSError as e:  # URLError, timeouts and connection failures
         print(f"System: Failed to connect to Resend HTTP API. Error details: {e}")
 
 @router.get("/auth/providers", response_model=AuthProvidersResponse)
@@ -120,7 +120,7 @@ def request_otp(payload: RequestOtpRequest, background_tasks: BackgroundTasks, d
             window_minutes=settings.auth_otp_request_window_minutes,
             operation="otp_request"
         )
-    except HTTPException as e:
+    except HTTPException:
         log_auth_event("OTP_REQUEST", email=email, phone=phone, status="denied", details={"reason": "rate_limit"})
         raise
 
@@ -147,9 +147,9 @@ def request_otp(payload: RequestOtpRequest, background_tasks: BackgroundTasks, d
     code = "000000" if settings.auth_debug else f"{secrets.randbelow(1000000):06d}"
     
     # Print the OTP to the terminal so the developer can see it locally
-    print(f"==================================================")
+    print("==================================================")
     print(f"OTP CODE FOR {identifier}: {code}")
-    print(f"==================================================")
+    print("==================================================")
 
     # Immediately fire off actual email processing in the background!
     if email:

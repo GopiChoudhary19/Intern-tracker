@@ -4,9 +4,7 @@ Tracks admin operations, authentication events, and data access patterns.
 """
 
 import logging
-from datetime import UTC, datetime
-from typing import Any, Optional
-from functools import wraps
+from typing import Any
 
 # Configure audit logger
 audit_logger = logging.getLogger("audit")
@@ -31,11 +29,11 @@ def setup_audit_logging() -> None:
 
 
 def log_admin_action(
-    admin_id: Optional[str],
+    admin_id: str | None,
     action: str,
     resource: str,
-    resource_id: Optional[str] = None,
-    details: Optional[dict[str, Any]] = None,
+    resource_id: str | None = None,
+    details: dict[str, Any] | None = None,
     status: str = "success"
 ) -> None:
     """
@@ -65,11 +63,11 @@ def log_admin_action(
 
 def log_auth_event(
     event: str,
-    user_id: Optional[str] = None,
-    email: Optional[str] = None,
-    phone: Optional[str] = None,
+    user_id: str | None = None,
+    email: str | None = None,
+    phone: str | None = None,
     status: str = "success",
-    details: Optional[dict[str, Any]] = None
+    details: dict[str, Any] | None = None
 ) -> None:
     """
     Log authentication events.
@@ -100,9 +98,9 @@ def log_auth_event(
 
 def log_access_attempt(
     endpoint: str,
-    user_id: Optional[str] = None,
+    user_id: str | None = None,
     access_level: str = "unauthorized",
-    details: Optional[dict[str, Any]] = None
+    details: dict[str, Any] | None = None
 ) -> None:
     """
     Log access attempts to protected endpoints.
@@ -129,7 +127,7 @@ def log_data_access(
     user_id: str,
     resource_type: str,
     resource_count: int = 1,
-    filters: Optional[dict[str, Any]] = None
+    filters: dict[str, Any] | None = None
 ) -> None:
     """
     Log data access patterns for analytics.
@@ -150,7 +148,7 @@ def log_data_access(
 def log_security_event(
     event: str,
     severity: str = "warning",  # info, warning, critical
-    details: Optional[dict[str, Any]] = None
+    details: dict[str, Any] | None = None
 ) -> None:
     """
     Log security-relevant events.

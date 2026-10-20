@@ -5,10 +5,10 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.config import settings
-from app.demo_store import DEMO_STORE
 from app.db import get_db
+from app.demo_store import DEMO_STORE
 from app.models import AuthSession, User
-from app.services import get_demo_user, use_demo_store
+from app.services import use_demo_store
 
 
 def extract_bearer_token(

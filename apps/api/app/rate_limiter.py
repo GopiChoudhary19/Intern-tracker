@@ -3,8 +3,8 @@ Rate limiting implementation for protecting against brute force attacks.
 Uses in-memory store for simplicity; for production, consider Redis.
 """
 
-from datetime import UTC, datetime, timedelta
 from collections import defaultdict
+from datetime import UTC, datetime, timedelta
 from typing import NamedTuple
 
 from fastapi import HTTPException, status
@@ -73,8 +73,7 @@ def reset_rate_limit(identifier: str, operation: str = "otp_request") -> None:
         operation: Operation name
     """
     key = f"{operation}:{identifier}"
-    if key in rate_limit_store:
-        del rate_limit_store[key]
+    rate_limit_store.pop(key, None)
 
 
 def get_remaining_attempts(
