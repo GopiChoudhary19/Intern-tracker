@@ -11,11 +11,9 @@ from sqlalchemy import case, or_, select
 from sqlalchemy.orm import Session, joinedload
 
 from app.config import settings
-from app.demo_store import DEMO_STORE
 from app.models import (
     Application,
     AuthSession,
-    FeedbackSubmission,
     Opportunity,
     Organization,
     User,
@@ -88,8 +86,8 @@ def ensure_global_seed_data(db: Session) -> None:
             "mode": "Remote",
             "location_text": "Remote, India",
             "description": "Work on distributed systems, developer tooling, and production backend services.",
-            "stipend_min": Decimal("45000"),
-            "stipend_max": Decimal("65000"),
+            "stipend_min": Decimal(45000),
+            "stipend_max": Decimal(65000),
             "currency": "INR",
             "application_url": "https://careers.google.com/jobs/swe-intern",
             "canonical_url": "https://careers.google.com/jobs/swe-intern",
@@ -128,8 +126,8 @@ def ensure_global_seed_data(db: Session) -> None:
             "mode": "Remote",
             "location_text": "Remote",
             "description": "Receive mentorship, compute grants, and a stipend to pursue applied AI research.",
-            "stipend_min": Decimal("20000"),
-            "stipend_max": Decimal("30000"),
+            "stipend_min": Decimal(20000),
+            "stipend_max": Decimal(30000),
             "currency": "INR",
             "application_url": "https://openresearch.example/scholarship",
             "canonical_url": "https://openresearch.example/scholarship",
@@ -148,8 +146,8 @@ def ensure_global_seed_data(db: Session) -> None:
             "mode": "Hybrid",
             "location_text": "Hyderabad",
             "description": "Ship end-to-end features across product engineering, APIs, and developer experience.",
-            "stipend_min": Decimal("40000"),
-            "stipend_max": Decimal("55000"),
+            "stipend_min": Decimal(40000),
+            "stipend_max": Decimal(55000),
             "currency": "INR",
             "application_url": "https://careers.microsoft.com/product-eng-intern",
             "canonical_url": "https://careers.microsoft.com/product-eng-intern",
@@ -188,8 +186,8 @@ def ensure_global_seed_data(db: Session) -> None:
             "mode": "Remote",
             "location_text": "Remote, APAC",
             "description": "Contribute to design system components and designer-developer workflows.",
-            "stipend_min": Decimal("35000"),
-            "stipend_max": Decimal("50000"),
+            "stipend_min": Decimal(35000),
+            "stipend_max": Decimal(50000),
             "currency": "INR",
             "application_url": "https://www.figma.com/careers/design-systems-intern",
             "canonical_url": "https://www.figma.com/careers/design-systems-intern",
@@ -208,8 +206,8 @@ def ensure_global_seed_data(db: Session) -> None:
             "mode": "Remote",
             "location_text": "Remote",
             "description": "Support student maintainers building meaningful open-source tools and communities.",
-            "stipend_min": Decimal("15000"),
-            "stipend_max": Decimal("25000"),
+            "stipend_min": Decimal(15000),
+            "stipend_max": Decimal(25000),
             "currency": "INR",
             "application_url": "https://github.com/about/careers/fellowship",
             "canonical_url": "https://github.com/about/careers/fellowship",
@@ -248,8 +246,8 @@ def ensure_global_seed_data(db: Session) -> None:
             "mode": "Hybrid",
             "location_text": "Campus + Remote",
             "description": "Lead workshops, build campus programs, and learn product-led growth from operators.",
-            "stipend_min": Decimal("10000"),
-            "stipend_max": Decimal("15000"),
+            "stipend_min": Decimal(10000),
+            "stipend_max": Decimal(15000),
             "currency": "INR",
             "application_url": "https://www.notion.so/careers/campus-ambassador",
             "canonical_url": "https://www.notion.so/careers/campus-ambassador",
@@ -288,22 +286,6 @@ def ensure_global_seed_data(db: Session) -> None:
         )
     db.add_all(created_opportunities)
     db.commit()
-
-
-def get_demo_user(db: Session) -> User:
-    user = db.scalar(
-        select(User)
-        .options(joinedload(User.profile))
-        .where(or_(User.email == settings.demo_email, User.phone == settings.demo_phone))
-    )
-    if user is None:
-        seed_demo_data(db)
-        user = db.scalar(
-            select(User)
-            .options(joinedload(User.profile))
-            .where(or_(User.email == settings.demo_email, User.phone == settings.demo_phone))
-        )
-    return user
 
 
 def hash_otp(value: str) -> str:

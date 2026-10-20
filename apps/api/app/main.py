@@ -1,17 +1,25 @@
 from contextlib import asynccontextmanager
-from datetime import UTC, datetime
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from fastapi.responses import JSONResponse
 
+from app.audit_log import setup_audit_logging
 from app.config import settings
 from app.db import SessionLocal
+from app.routers import (
+    admin,
+    ai,
+    applications,
+    auth,
+    community,
+    feedback,
+    notifications,
+    opportunities,
+    profile,
+    saved_searches,
+)
 from app.services import configure_storage_mode, create_schema_and_seed
-from app.audit_log import setup_audit_logging, log_security_event
-
-from app.routers import admin, ai, applications, auth, community, feedback, notifications, opportunities, profile, saved_searches
 
 
 @asynccontextmanager

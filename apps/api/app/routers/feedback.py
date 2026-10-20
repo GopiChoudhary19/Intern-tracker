@@ -1,10 +1,9 @@
 from fastapi import APIRouter, Depends
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.db import get_db
-from app.deps import get_optional_current_user
 from app.demo_store import DEMO_STORE
+from app.deps import get_optional_current_user
 from app.models import FeedbackSubmission, User
 from app.schemas import CreateFeedbackRequest, FeedbackSubmissionResponse
 from app.services import use_demo_store

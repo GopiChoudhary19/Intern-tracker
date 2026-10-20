@@ -1,27 +1,32 @@
+from datetime import UTC, datetime
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session, joinedload
-from datetime import UTC, datetime
 
-from app.demo_store import DEMO_STORE
+from app.audit_log import log_admin_action
 from app.db import get_db
+from app.demo_store import DEMO_STORE
 from app.deps import require_admin
 from app.models import Application, FeedbackSubmission, Opportunity, Organization, User
 from app.schemas import (
-    AdminOpportunityPayload,
     AdminFeedbackItem,
     AdminFeedbackResponse,
-    AdminUserSummary,
+    AdminOpportunityPayload,
     AdminUsersResponse,
+    AdminUserSummary,
     AnalyticsOverviewResponse,
     OpportunityDetail,
     OpportunityListResponse,
     UpdateFeedbackStatusRequest,
 )
-from app.services import OPPORTUNITY_STATUSES, slugify_text, to_opportunity_detail, use_demo_store
-from app.audit_log import log_admin_action
+from app.services import (
+    OPPORTUNITY_STATUSES,
+    slugify_text,
+    to_opportunity_detail,
+    use_demo_store,
+)
 
 router = APIRouter(tags=["admin"])
 

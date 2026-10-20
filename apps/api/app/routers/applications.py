@@ -4,8 +4,8 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.demo_store import DEMO_STORE
 from app.db import get_db
+from app.demo_store import DEMO_STORE
 from app.deps import get_current_user
 from app.models import Application, Opportunity, User
 from app.schemas import (
@@ -15,7 +15,12 @@ from app.schemas import (
     MessageResponse,
     UpdateApplicationRequest,
 )
-from app.services import APPLICATION_STATUSES, get_applications_for_user, to_application_record, use_demo_store
+from app.services import (
+    APPLICATION_STATUSES,
+    get_applications_for_user,
+    to_application_record,
+    use_demo_store,
+)
 
 router = APIRouter(tags=["applications"])
 
