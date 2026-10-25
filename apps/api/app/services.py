@@ -466,6 +466,7 @@ def list_opportunities(
         query = query.where(
             or_(
                 Opportunity.title.ilike(like),
+                Opportunity.organization.has(Organization.name.ilike(like)),
                 Opportunity.description.ilike(like),
                 Opportunity.domain.ilike(like),
                 Opportunity.location_text.ilike(like),

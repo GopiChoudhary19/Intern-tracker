@@ -29,6 +29,12 @@ def test_filter_by_type(client):
     assert items and all(i["type"] == "hackathon" for i in items)
 
 
+def test_search_matches_organization_name(client):
+    # "Google" only appears in the organisation field of the Google internship
+    items = client.get("/api/v1/opportunities", params={"search": "google", "limit": 100}).json()["items"]
+    assert [i["slug"] for i in items] == ["google-swe-internship-program"]
+
+
 def test_opportunity_detail_and_404(client):
     slug = client.get("/api/v1/opportunities").json()["items"][0]["slug"]
     assert client.get(f"/api/v1/opportunities/{slug}").json()["slug"] == slug

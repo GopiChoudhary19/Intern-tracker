@@ -300,6 +300,7 @@ class DemoStore:
                 item
                 for item in items
                 if term in item.title.lower()
+                or term in item.organization.lower()
                 or term in item.description.lower()
                 or term in item.domain.lower()
                 or term in (item.location_text or "").lower()
