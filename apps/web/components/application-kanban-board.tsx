@@ -102,9 +102,9 @@ export function ApplicationKanbanBoard({ items }: { items: ApplicationRecord[] }
 
   return (
     <div>
-      <div className="grid gap-4 md:grid-cols-5">
+      <div className="flex gap-4 overflow-x-auto pb-2">
         {grouped.map((column) => (
-          <section key={column.id} className="rounded-[28px] border border-white/60 bg-white/85 p-4 shadow-glow">
+          <section key={column.id} className="w-64 shrink-0 rounded-[28px] border border-white/60 bg-white/85 p-4 shadow-glow">
             <div className="flex items-center justify-between gap-3">
               <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-ink">{column.label}</h3>
               <span className={`rounded-full px-3 py-1 text-xs font-medium ${column.accent}`}>{column.items.length}</span>

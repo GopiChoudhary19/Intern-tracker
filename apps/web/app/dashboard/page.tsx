@@ -107,7 +107,7 @@ export default async function DashboardPage() {
         </div>
 
         <div className="mt-8 grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-          <div className="space-y-6">
+          <div className="min-w-0 space-y-6">
             <section>
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-xl font-semibold text-ink">Application pipeline</h2>

@@ -11,7 +11,8 @@ const config: Config = {
         mint: "var(--mint)",
         teal: "var(--teal)",
         coral: "var(--coral)",
-        slate: "var(--slate)"
+        slate: "var(--slate)",
+        "surface-strong": "var(--surface-strong)"
       },
       fontFamily: {
         sans: ["Poppins", "ui-sans-serif", "system-ui"]
