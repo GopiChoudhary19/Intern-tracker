@@ -96,7 +96,10 @@ def delete_saved_search(
     current_user: User = Depends(get_current_user),
 ) -> dict[str, str]:
     if use_demo_store():
-        DEMO_STORE.delete_saved_search(saved_search_id)
+        try:
+            DEMO_STORE.delete_saved_search(saved_search_id)
+        except KeyError:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Saved search not found") from None
         return {"message": "Saved search removed"}
 
     item = db.scalar(select(SavedSearch).where(SavedSearch.id == saved_search_id, SavedSearch.user_id == current_user.id))

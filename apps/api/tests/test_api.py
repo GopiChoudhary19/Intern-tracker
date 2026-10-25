@@ -81,3 +81,25 @@ def test_create_application_validates_status_and_opportunity(client, auth):
 def test_admin_requires_token(client, admin):
     assert client.get("/api/v1/admin/opportunities").status_code == 401
     assert client.get("/api/v1/admin/opportunities", headers=admin).status_code == 200
+
+
+def test_update_application_rejects_unknown_status(client, auth):
+    app_id = client.get("/api/v1/applications", headers=auth).json()["items"][0]["id"]
+    r = client.patch(f"/api/v1/applications/{app_id}", headers=auth, json={"status": "banana"})
+    assert r.status_code == 400
+    assert client.get("/api/v1/applications", headers=auth).json()["items"][0]["status"] != "banana"
+
+
+def test_deleting_missing_records_returns_404(client, auth, admin):
+    missing = uuid4()
+    assert client.delete(f"/api/v1/applications/{missing}", headers=auth).status_code == 404
+    assert client.delete(f"/api/v1/saved-searches/{missing}", headers=auth).status_code == 404
+    assert client.delete(f"/api/v1/admin/opportunities/{missing}", headers=admin).status_code == 404
+
+
+def test_saved_search_create_and_delete(client, auth):
+    r = client.post("/api/v1/saved-searches", headers=auth, json={"label": "Remote backend", "mode": "Remote"})
+    assert r.status_code == 201
+    sid = r.json()["id"]
+    assert client.delete(f"/api/v1/saved-searches/{sid}", headers=auth).status_code == 200
+    assert client.delete(f"/api/v1/saved-searches/{sid}", headers=auth).status_code == 404

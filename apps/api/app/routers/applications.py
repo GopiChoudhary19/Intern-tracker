@@ -85,6 +85,8 @@ def update_application(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> ApplicationRecord:
+    if payload.status is not None and payload.status not in APPLICATION_STATUSES:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid application status")
     if use_demo_store():
         try:
             return DEMO_STORE.update_application(
@@ -105,8 +107,6 @@ def update_application(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Application not found")
 
     updates = payload.model_dump(exclude_unset=True)
-    if "status" in updates and updates["status"] not in APPLICATION_STATUSES:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid application status")
     for field, value in updates.items():
         setattr(application, field, value)
     if payload.status and payload.status != "saved" and application.applied_at is None:
@@ -124,7 +124,10 @@ def delete_application(
     current_user: User = Depends(get_current_user),
 ) -> MessageResponse:
     if use_demo_store():
-        DEMO_STORE.delete_application(application_id)
+        try:
+            DEMO_STORE.delete_application(application_id)
+        except KeyError:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Application not found") from None
         return MessageResponse(message="Application removed")
     application = (
         db.query(Application)

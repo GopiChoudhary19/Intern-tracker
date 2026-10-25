@@ -389,7 +389,10 @@ class DemoStore:
         raise KeyError("Opportunity not found")
 
     def delete_opportunity(self, opportunity_id: UUID) -> None:
-        self.opportunities = [item for item in self.opportunities if item.id != opportunity_id]
+        remaining = [item for item in self.opportunities if item.id != opportunity_id]
+        if len(remaining) == len(self.opportunities):
+            raise KeyError("Opportunity not found")
+        self.opportunities = remaining
 
     def update_feedback_status(self, feedback_id: UUID, status: str) -> AdminFeedbackItem:
         for item in self.feedback_items:
@@ -477,7 +480,10 @@ class DemoStore:
         raise KeyError("Application not found")
 
     def delete_application(self, application_id: UUID) -> None:
-        self.applications = [item for item in self.applications if item.id != application_id]
+        remaining = [item for item in self.applications if item.id != application_id]
+        if len(remaining) == len(self.applications):
+            raise KeyError("Application not found")
+        self.applications = remaining
 
     def update_profile(self, payload: dict) -> UserProfileResponse:
         current = self.user.model_dump()
@@ -558,7 +564,10 @@ class DemoStore:
         return deepcopy(item)
 
     def delete_saved_search(self, saved_search_id: UUID) -> None:
-        self.saved_searches = [item for item in self.saved_searches if item.id != saved_search_id]
+        remaining = [item for item in self.saved_searches if item.id != saved_search_id]
+        if len(remaining) == len(self.saved_searches):
+            raise KeyError("Saved search not found")
+        self.saved_searches = remaining
 
     def threads(self) -> list[ThreadItem]:
         return [

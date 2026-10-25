@@ -264,7 +264,10 @@ def delete_admin_opportunity(
     db: Session = Depends(get_db),
 ) -> dict[str, str]:
     if use_demo_store():
-        DEMO_STORE.delete_opportunity(opportunity_id)
+        try:
+            DEMO_STORE.delete_opportunity(opportunity_id)
+        except KeyError:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Opportunity not found") from None
         return {"message": "Opportunity deleted"}
 
     opportunity = db.query(Opportunity).filter(Opportunity.id == opportunity_id).first()
