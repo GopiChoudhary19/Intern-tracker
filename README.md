@@ -4,6 +4,14 @@
 
 A student opportunity discovery platform for internships, hackathons, coding contests, scholarships, workshops and tech events.
 
+![Dashboard](docs/screenshots/dashboard.jpg)
+
+| Opportunity feed | |
+|---|---|
+| ![Opportunity feed](docs/screenshots/opportunities.jpg) | Search by role, company, domain or location; filter by type, mode, deadline, stipend and verification; save searches; compare opportunities side by side. |
+
+Screenshots are from the app running locally in demo mode (no database).
+
 ## Features
 
 - **Opportunity discovery**: search, filter, sort and compare opportunities, with recommendations based on the student profile
@@ -21,7 +29,67 @@ A student opportunity discovery platform for internships, hackathons, coding con
 | Frontend | Next.js 14, React 18, TypeScript, Tailwind CSS |
 | Backend | FastAPI, SQLAlchemy 2, Pydantic 2 |
 | Database | PostgreSQL 16 |
-| Infrastructure | Docker Compose, GitHub Actions CI (Ruff lint + frontend build), Render config |
+| Infrastructure | Docker Compose, GitHub Actions CI (Ruff, pytest, frontend build), Render config |
+
+## Architecture (as built)
+
+```mermaid
+flowchart LR
+    B[Browser] --> W["Next.js 14 app<br/>(server components + route handlers)"]
+    W -->|"REST /api/v1, bearer session token"| A[FastAPI]
+    A --> R[Routers: auth, opportunities,<br/>applications, saved searches, admin ...]
+    R --> M{storage mode}
+    M -->|database| P[(PostgreSQL 16<br/>SQLAlchemy 2)]
+    M -->|demo| D[In-memory demo store]
+    A -.->|OTP email| E[Resend API]
+```
+
+The same routers serve both storage modes, and the backend test suite runs against the demo store so it needs no database.
+`docs/system-architecture.md` describes the longer-term design (ingestion, caching, push notifications), much of which is not built yet.
+
+## Try the API
+
+```bash
+cd apps/api && pip install -r requirements.txt
+INTERN_TRACKER_DEMO_MODE=demo uvicorn app.main:app --port 8000
+```
+
+```bash
+$ curl "localhost:8000/api/v1/opportunities?search=google&limit=1"
+{
+  "items": [
+    {
+      "slug": "google-swe-internship-program",
+      "title": "SWE Internship Program",
+      "organization": "Google",
+      "type": "internship",
+      "mode": "Remote",
+      "location_text": "Remote, India",
+      "is_verified": true,
+      ...
+    }
+  ],
+  "metadata": {"total": 1, "page": 1, "page_size": 1, "has_next_page": false}
+}
+
+$ curl -X POST localhost:8000/api/v1/auth/request-otp -H "Content-Type: application/json" -d '{"email": "you@college.edu"}'
+{"challenge_id": "...", "message": "Demo OTP generated. Use 000000 to continue.", "channel": "email", "target_hint": "yo*@college.edu", "development_code": "000000"}
+
+$ curl localhost:8000/api/v1/applications -H "Authorization: Bearer demo-student-token"
+{"items": [ ...three seeded applications with status, notes and follow-up dates... ]}
+```
+
+Interactive docs: `http://localhost:8000/api/v1/docs`.
+
+## Tests
+
+```bash
+cd apps/api
+pip install -r requirements-dev.txt
+pytest -q
+```
+
+CI runs Ruff, the API test suite and a production build of the web app on every push.
 
 ## Repository layout
 
