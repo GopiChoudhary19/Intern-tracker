@@ -4,6 +4,7 @@ import { AppHeader } from "../../components/app-header";
 import { FeedbackComposer } from "../../components/feedback-composer";
 import { getServerAuthToken } from "../../lib/session";
 import { siteConfig } from "../../lib/site-config";
+import { isCurrentUserAdmin } from "../../lib/admin-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +13,7 @@ export default async function FeedbackPage() {
   if (!token) {
     redirect("/");
   }
-  const showAdminLink = Boolean(process.env.INTERN_TRACKER_ADMIN_TOKEN);
+  const showAdminLink = await isCurrentUserAdmin();
 
   return (
     <AppSidebarShell isAuthenticated={Boolean(token)} showAdminLink={showAdminLink}>
