@@ -492,6 +492,8 @@ def list_opportunities(
     if deadline_days is not None:
         query = query.where(
             Opportunity.deadline_at.is_not(None),
+            # "closing within N days" means still open: deadlines already passed are not upcoming
+            Opportunity.deadline_at >= datetime.now(UTC),
             Opportunity.deadline_at <= datetime.now(UTC) + timedelta(days=deadline_days),
         )
 
