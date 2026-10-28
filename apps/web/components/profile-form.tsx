@@ -60,6 +60,10 @@ export function ProfileForm({ profile }: { profile: UserProfile }) {
         event.preventDefault();
         
         // Validation
+        if (!formState.full_name.trim()) {
+          setMessage("Full name is required.");
+          return;
+        }
         if (!isValidGraduationYear(formState.graduation_year)) {
           setMessage("Graduation year must be between 2000 and 2050.");
           return;
