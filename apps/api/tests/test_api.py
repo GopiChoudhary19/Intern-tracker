@@ -130,3 +130,8 @@ def test_null_lists_in_profile_update_become_empty_lists():
     update = UpdateProfileRequest.model_validate({"skills": None, "preferred_domains": None})
     assert update.model_dump(exclude_unset=True) == {"skills": [], "preferred_domains": []}
     assert UpdateProfileRequest.model_validate({"full_name": "  Asha  "}).full_name == "Asha"
+
+
+def test_public_listings_keep_their_cache_policy_and_private_data_is_not_cached(client, auth):
+    assert client.get("/api/v1/opportunities").headers["cache-control"] == "public, max-age=60"
+    assert "no-store" in client.get("/api/v1/me", headers=auth).headers["cache-control"]
