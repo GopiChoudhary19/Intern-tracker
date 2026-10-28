@@ -441,6 +441,12 @@ def get_or_create_profile(user: User, db: Session) -> UserProfile:
     return user.profile
 
 
+def contains_pattern(search: str) -> str:
+    # % and _ are LIKE wildcards; unescaped, searching "%" or "_" matched every listing
+    escaped = search.strip().replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+    return f"%{escaped}%"
+
+
 def list_opportunities(
     db: Session,
     search: str | None = None,
@@ -462,14 +468,14 @@ def list_opportunities(
         .where(Opportunity.status == "published")
     )
     if search:
-        like = f"%{search.strip()}%"
+        like = contains_pattern(search)
         query = query.where(
             or_(
-                Opportunity.title.ilike(like),
-                Opportunity.organization.has(Organization.name.ilike(like)),
-                Opportunity.description.ilike(like),
-                Opportunity.domain.ilike(like),
-                Opportunity.location_text.ilike(like),
+                Opportunity.title.ilike(like, escape="\\"),
+                Opportunity.organization.has(Organization.name.ilike(like, escape="\\")),
+                Opportunity.description.ilike(like, escape="\\"),
+                Opportunity.domain.ilike(like, escape="\\"),
+                Opportunity.location_text.ilike(like, escape="\\"),
             )
         )
     if opportunity_type:
