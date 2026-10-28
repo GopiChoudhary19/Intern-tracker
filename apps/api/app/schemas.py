@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Annotated
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class OpportunitySummary(BaseModel):
@@ -95,24 +96,42 @@ class UserProfileResponse(BaseModel):
     onboarding_completed: bool
 
 
+ShortText = Annotated[str, Field(max_length=100)]
+
+
 class UpdateProfileRequest(BaseModel):
-    full_name: str | None = None
-    college_name: str | None = None
-    degree: str | None = None
-    branch: str | None = None
-    graduation_year: int | None = None
-    city: str | None = None
-    country: str | None = None
-    bio: str | None = None
-    goals: str | None = None
-    preferred_domains: list[str] | None = None
-    preferred_locations: list[str] | None = None
-    preferred_opportunity_types: list[str] | None = None
-    skills: list[str] | None = None
-    github_url: str | None = None
-    linkedin_url: str | None = None
-    resume_url: str | None = None
+    # limits follow the database columns, so bad input is a 422 instead of a failed write
+    full_name: str = Field(default=None, min_length=1, max_length=255)
+    college_name: str | None = Field(default=None, max_length=255)
+    degree: str | None = Field(default=None, max_length=100)
+    branch: str | None = Field(default=None, max_length=100)
+    graduation_year: int | None = Field(default=None, ge=1950, le=2100)
+    city: str | None = Field(default=None, max_length=120)
+    country: str | None = Field(default=None, max_length=120)
+    bio: str | None = Field(default=None, max_length=2000)
+    goals: str | None = Field(default=None, max_length=2000)
+    preferred_domains: list[ShortText] | None = Field(default=None, max_length=50)
+    preferred_locations: list[ShortText] | None = Field(default=None, max_length=50)
+    preferred_opportunity_types: list[ShortText] | None = Field(default=None, max_length=50)
+    skills: list[ShortText] | None = Field(default=None, max_length=50)
+    github_url: str | None = Field(default=None, max_length=2000)
+    linkedin_url: str | None = Field(default=None, max_length=2000)
+    resume_url: str | None = Field(default=None, max_length=2000)
     onboarding_completed: bool | None = None
+
+    @field_validator("full_name", mode="before")
+    @classmethod
+    def full_name_is_required_once_sent(cls, value):
+        # the column is NOT NULL; sending null used to fail the write with a 500
+        if value is None:
+            raise ValueError("full_name cannot be null")
+        return value.strip() if isinstance(value, str) else value
+
+    @field_validator("preferred_domains", "preferred_locations", "preferred_opportunity_types", "skills", mode="before")
+    @classmethod
+    def null_list_means_empty(cls, value):
+        # storing NULL in these array columns made every later GET /me fail, so null clears the list instead
+        return [] if value is None else value
 
 
 class RequestOtpRequest(BaseModel):
