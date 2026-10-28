@@ -10,17 +10,19 @@ import { CompareTray } from "../components/compare-tray";
 import { MobileBottomNav } from "../components/mobile-bottom-nav";
 import { ShellActions } from "../components/shell-actions";
 import { ErrorBoundary } from "../components/error-boundary";
+import { isCurrentUserAdmin } from "../lib/admin-auth";
 
 export const metadata: Metadata = {
   title: "Intern Tracker",
   description: "Discover, track, and act on internships, hackathons, scholarships, and student opportunities."
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
   const cookieStore = cookies();
   const theme = cookieStore.get("intern_tracker_theme")?.value === "dark" ? "dark" : "light";
   const isAuthenticated = Boolean(cookieStore.get(AUTH_TOKEN_COOKIE)?.value);
-  const showAdminLink = Boolean(process.env.INTERN_TRACKER_ADMIN_TOKEN);
+  // only administrators should see the admin entry point
+  const showAdminLink = isAuthenticated && (await isCurrentUserAdmin());
 
   return (
     <html lang="en" data-theme={theme}>

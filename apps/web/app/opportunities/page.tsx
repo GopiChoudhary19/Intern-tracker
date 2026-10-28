@@ -9,6 +9,7 @@ import { NoOpportunitiesEmpty, LoadingError } from "../../components/empty-state
 import { getProfile, listOpportunities } from "../../lib/api";
 import { getServerAuthToken } from "../../lib/session";
 import type { OpportunitySummary, UserProfile } from "../../lib/types";
+import { isCurrentUserAdmin } from "../../lib/admin-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -49,7 +50,7 @@ export default async function OpportunitiesPage({ searchParams }: OpportunitiesP
   const currentFilters = searchParams ?? {};
   const token = await getServerAuthToken();
 
-  const showAdminLink = Boolean(process.env.INTERN_TRACKER_ADMIN_TOKEN);
+  const showAdminLink = await isCurrentUserAdmin();
   let profile: UserProfile | null = null;
   let items: OpportunitySummary[] = [];
   let metadata = null;
