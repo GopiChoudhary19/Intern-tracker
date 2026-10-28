@@ -116,3 +116,17 @@ def test_closing_soon_filter_skips_deadlines_that_already_passed(client):
     slugs = {item["slug"] for item in items}
     assert expired.slug not in slugs
     assert slugs, "opportunities closing within the week should still be listed"
+
+
+def test_profile_update_rejects_values_the_database_cannot_store(client, auth):
+    for bad in ({"full_name": None}, {"full_name": ""}, {"degree": "x" * 101},
+                {"graduation_year": 3000}, {"skills": ["x" * 101]}, {"skills": ["a"] * 51}):
+        assert client.patch("/api/v1/me", json=bad, headers=auth).status_code == 422, bad
+
+
+def test_null_lists_in_profile_update_become_empty_lists():
+    from app.schemas import UpdateProfileRequest
+
+    update = UpdateProfileRequest.model_validate({"skills": None, "preferred_domains": None})
+    assert update.model_dump(exclude_unset=True) == {"skills": [], "preferred_domains": []}
+    assert UpdateProfileRequest.model_validate({"full_name": "  Asha  "}).full_name == "Asha"
