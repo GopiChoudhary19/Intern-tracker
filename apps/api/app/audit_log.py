@@ -6,6 +6,8 @@ Tracks admin operations, authentication events, and data access patterns.
 import logging
 from typing import Any
 
+from app.services import mask_identifier
+
 # Configure audit logger
 audit_logger = logging.getLogger("audit")
 auth_logger = logging.getLogger("auth")
@@ -13,6 +15,9 @@ auth_logger = logging.getLogger("auth")
 
 def setup_audit_logging() -> None:
     """Initialize audit logging handlers."""
+    # called on every app start (and in tests on every client); adding a handler each time duplicated every line
+    if audit_logger.handlers:
+        return
     # Console handler for audit logs
     handler = logging.StreamHandler()
     formatter = logging.Formatter(
@@ -83,10 +88,11 @@ def log_auth_event(
     message = f"AUTH_EVENT | event={event} | status={status}"
     if user_id:
         message += f" | user_id={user_id}"
+    # logs leave the database's access controls (hosting dashboards, log drains), so contact details are masked
     if email:
-        message += f" | email={email}"
+        message += f" | email={mask_identifier(email=email)}"
     if phone:
-        message += f" | phone={phone}"
+        message += f" | phone={mask_identifier(phone=phone)}"
     if details:
         message += f" | details={details}"
     
