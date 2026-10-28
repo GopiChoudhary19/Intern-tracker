@@ -9,6 +9,7 @@ import { ResumeMatchCard } from "../../../components/resume-match-card";
 import { getApplications, getOpportunity, getProfile } from "../../../lib/api";
 import { getServerAuthToken } from "../../../lib/session";
 import type { OpportunityDetail, UserProfile } from "../../../lib/types";
+import { isCurrentUserAdmin } from "../../../lib/admin-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -26,7 +27,7 @@ function moneyLabel(min: number | null, max: number | null, currency: string | n
 
 export default async function OpportunityDetailPage({ params }: OpportunityDetailPageProps) {
   const token = await getServerAuthToken();
-  const showAdminLink = Boolean(process.env.INTERN_TRACKER_ADMIN_TOKEN);
+  const showAdminLink = await isCurrentUserAdmin();
   
   let opportunity: OpportunityDetail;
   try {

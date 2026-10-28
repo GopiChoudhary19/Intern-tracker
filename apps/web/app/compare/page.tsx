@@ -6,6 +6,7 @@ import { AppHeader } from "../../components/app-header";
 import { getOpportunity } from "../../lib/api";
 import { getServerAuthToken } from "../../lib/session";
 import type { OpportunityDetail } from "../../lib/types";
+import { isCurrentUserAdmin } from "../../lib/admin-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -30,7 +31,7 @@ export default async function ComparePage({ searchParams }: ComparePageProps) {
   if (!token) {
     redirect("/");
   }
-  const showAdminLink = Boolean(process.env.INTERN_TRACKER_ADMIN_TOKEN);
+  const showAdminLink = await isCurrentUserAdmin();
   
   const slugs = (searchParams?.slugs ?? "")
     .split(",")
