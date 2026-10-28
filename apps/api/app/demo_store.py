@@ -20,6 +20,7 @@ from app.schemas import (
     ThreadItem,
     UserProfileResponse,
 )
+from app.services import folded
 
 
 class DemoStore:
@@ -413,26 +414,27 @@ class DemoStore:
         raise KeyError("Feedback not found")
 
     def get_recommended(self) -> list[OpportunitySummary]:
-        preferred_domains = set(self.user.preferred_domains)
-        preferred_modes = set(self.user.preferred_locations)
-        preferred_types = set(self.user.preferred_opportunity_types)
-        preferred_skills = set(self.user.skills)
+        preferred_domains = folded(self.user.preferred_domains)
+        preferred_modes = folded(self.user.preferred_locations)
+        preferred_types = folded(self.user.preferred_opportunity_types)
+        preferred_skills = folded(self.user.skills)
 
         def score(item: OpportunityDetail) -> int:
             total = 0
-            if item.domain in preferred_domains:
+            if (item.domain or "").casefold() in preferred_domains:
                 total += 3
-            if item.type in preferred_types:
+            if (item.type or "").casefold() in preferred_types:
                 total += 2
-            if item.mode in preferred_modes:
+            if (item.mode or "").casefold() in preferred_modes:
                 total += 2
-            total += len(set(item.required_skills).intersection(preferred_skills))
+            total += len(folded(item.required_skills) & preferred_skills)
             if item.is_verified:
                 total += 1
             return total
 
+        now = datetime.now(UTC)
         ranked = sorted(
-            self.opportunities,
+            (item for item in self.opportunities if item.deadline_at is None or item.deadline_at >= now),
             key=lambda item: (-score(item), item.deadline_at or datetime.max.replace(tzinfo=UTC)),
         )
         return [self.to_summary(item) for item in ranked[:6]]
