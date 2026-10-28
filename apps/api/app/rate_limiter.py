@@ -64,6 +64,16 @@ def check_rate_limit(
     return True
 
 
+def record_failed_attempt(identifier: str, window_minutes: int = 15, operation: str = "otp_verify") -> int:
+    """Record one failure for an identifier and return how many failures it has inside the window."""
+    key = f"{operation}:{identifier}"
+    now = datetime.now(UTC)
+    window_start = now - timedelta(minutes=window_minutes)
+    rate_limit_store[key] = [t for t in rate_limit_store[key] if t > window_start]
+    rate_limit_store[key].append(now)
+    return len(rate_limit_store[key])
+
+
 def reset_rate_limit(identifier: str, operation: str = "otp_request") -> None:
     """
     Reset rate limit for an identifier (e.g., after successful login).
