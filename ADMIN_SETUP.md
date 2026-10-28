@@ -11,6 +11,11 @@ Set these on the deployed services:
 - Web service:
   - `NEXT_PUBLIC_API_BASE_URL=https://internradar.onrender.com/api/v1`
   - `INTERN_TRACKER_ADMIN_TOKEN=<same-secret-you-store-in-render>`
+  - `INTERN_TRACKER_ADMIN_EMAILS=you@example.com` (comma-separated; only these signed-in users can open
+    `/admin` or call the web app's `/api/admin/*` routes, everyone else is redirected or gets 403)
+
+The API service also needs `INTERN_TRACKER_RESEND_API_KEY` so sign-in codes are emailed; without it, codes
+are only shown when `INTERN_TRACKER_AUTH_DEBUG=true`, which must stay off in production.
 
 Optional auth protection settings already supported:
 

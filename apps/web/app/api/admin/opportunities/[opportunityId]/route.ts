@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { deleteAdminOpportunity, updateAdminOpportunity } from "../../../../../lib/admin";
+import { isCurrentUserAdmin } from "../../../../../lib/admin-auth";
 
 type RouteProps = {
   params: {
@@ -8,7 +9,12 @@ type RouteProps = {
   };
 };
 
+const FORBIDDEN = { detail: "Admin access required" };
+
 export async function PATCH(request: Request, { params }: RouteProps) {
+  if (!(await isCurrentUserAdmin())) {
+    return NextResponse.json(FORBIDDEN, { status: 403 });
+  }
   try {
     const payload = await request.json();
     const response = await updateAdminOpportunity(params.opportunityId, payload);
@@ -20,6 +26,9 @@ export async function PATCH(request: Request, { params }: RouteProps) {
 }
 
 export async function DELETE(_: Request, { params }: RouteProps) {
+  if (!(await isCurrentUserAdmin())) {
+    return NextResponse.json(FORBIDDEN, { status: 403 });
+  }
   try {
     const response = await deleteAdminOpportunity(params.opportunityId);
     return NextResponse.json(response);
