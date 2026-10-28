@@ -20,6 +20,21 @@ class RateLimitWindow(NamedTuple):
 # Key: "endpoint:identifier" (e.g., "otp_request:user@email.com")
 rate_limit_store: dict[str, list[datetime]] = defaultdict(list)
 
+# Keys were never removed, so every email, phone or challenge ever seen stayed in memory for the life of the
+# process. Every few minutes, keys with no request in the last day are dropped (all windows are far shorter).
+SWEEP_INTERVAL = timedelta(minutes=10)
+STALE_AFTER = timedelta(days=1)
+_last_sweep = datetime.min.replace(tzinfo=UTC)
+
+
+def sweep_stale_keys(now: datetime) -> None:
+    global _last_sweep
+    if now - _last_sweep < SWEEP_INTERVAL:
+        return
+    _last_sweep = now
+    for key in [k for k, times in rate_limit_store.items() if not times or times[-1] < now - STALE_AFTER]:
+        del rate_limit_store[key]
+
 
 def check_rate_limit(
     identifier: str,
@@ -69,6 +84,7 @@ def record_failed_attempt(identifier: str, window_minutes: int = 15, operation: 
     key = f"{operation}:{identifier}"
     now = datetime.now(UTC)
     window_start = now - timedelta(minutes=window_minutes)
+    sweep_stale_keys(now)
     rate_limit_store[key] = [t for t in rate_limit_store[key] if t > window_start]
     rate_limit_store[key].append(now)
     return len(rate_limit_store[key])
