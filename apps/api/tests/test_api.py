@@ -103,3 +103,16 @@ def test_saved_search_create_and_delete(client, auth):
     sid = r.json()["id"]
     assert client.delete(f"/api/v1/saved-searches/{sid}", headers=auth).status_code == 200
     assert client.delete(f"/api/v1/saved-searches/{sid}", headers=auth).status_code == 404
+
+
+def test_closing_soon_filter_skips_deadlines_that_already_passed(client):
+    from datetime import UTC, datetime, timedelta
+
+    from app.demo_store import DEMO_STORE
+
+    expired = DEMO_STORE.opportunities[0]
+    expired.deadline_at = datetime.now(UTC) - timedelta(days=1)
+    items = client.get("/api/v1/opportunities", params={"deadline_days": 7, "limit": 100}).json()["items"]
+    slugs = {item["slug"] for item in items}
+    assert expired.slug not in slugs
+    assert slugs, "opportunities closing within the week should still be listed"
