@@ -6,6 +6,7 @@ import { AdminOpportunityManager } from "../../components/admin-opportunity-mana
 import { AppSidebarShell } from "../../components/app-sidebar-shell";
 import { AppHeader } from "../../components/app-header";
 import { getAdminFeedback, getAdminOpportunities, getAdminOverview, getAdminUsers } from "../../lib/admin";
+import { isCurrentUserAdmin } from "../../lib/admin-auth";
 import { getServerAuthToken } from "../../lib/session";
 import type { AdminFeedbackItem, AdminUserSummary, AnalyticsOverview, OpportunityDetail } from "../../lib/types";
 
@@ -23,6 +24,10 @@ export default async function AdminPage() {
   const token = await getServerAuthToken();
   if (!token) {
     redirect("/");
+  }
+  // being signed in is not enough: this page lists every user's contact details
+  if (!(await isCurrentUserAdmin())) {
+    redirect("/dashboard");
   }
   const adminTokenConfigured = Boolean(process.env.INTERN_TRACKER_ADMIN_TOKEN);
 
