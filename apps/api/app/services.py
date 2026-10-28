@@ -525,25 +525,35 @@ def list_opportunities(
     return total, list(db.scalars(query).unique().all())
 
 
+def folded(values) -> set[str]:
+    # profile entries are typed by students ("Python", "Remote"), listings use their own casing
+    return {value.strip().casefold() for value in values or [] if value}
+
+
 def get_recommended_opportunities(db: Session, user: User) -> list[Opportunity]:
     profile = get_or_create_profile(user, db)
     query = (
         select(Opportunity)
         .options(joinedload(Opportunity.organization))
         .where(Opportunity.status == "published")
+        # closed listings used to be recommended first, because ties are broken by the soonest deadline
+        .where(or_(Opportunity.deadline_at.is_(None), Opportunity.deadline_at >= datetime.now(UTC)))
     )
     opportunities = list(db.scalars(query).unique().all())
+    domains = folded(profile.preferred_domains)
+    types = folded(profile.preferred_opportunity_types)
+    modes = folded(profile.preferred_locations)
+    skills = folded(profile.skills)
 
     def score(opportunity: Opportunity) -> int:
         total = 0
-        if opportunity.domain in (profile.preferred_domains or []):
+        if (opportunity.domain or "").casefold() in domains:
             total += 3
-        if opportunity.type in (profile.preferred_opportunity_types or []):
+        if (opportunity.type or "").casefold() in types:
             total += 2
-        if opportunity.mode in (profile.preferred_locations or []):
+        if (opportunity.mode or "").casefold() in modes:
             total += 2
-        overlap = set(opportunity.required_skills or []).intersection(profile.skills or [])
-        total += len(overlap)
+        total += len(folded(opportunity.required_skills) & skills)
         if opportunity.is_verified:
             total += 1
         return total
