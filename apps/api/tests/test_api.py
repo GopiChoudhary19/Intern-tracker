@@ -164,3 +164,11 @@ def test_recommendations_skip_closed_listings_and_ignore_case(client, auth):
     slugs = [item["slug"] for item in client.get("/api/v1/opportunities/recommended", headers=auth).json()["items"]]
     assert closed.slug not in slugs
     assert slugs[0] == DEMO_STORE.opportunities[1].slug, "upper-case profile entries must still match"
+
+
+def test_search_pattern_escapes_like_wildcards():
+    from app.services import contains_pattern
+
+    assert contains_pattern(" 100% ") == r"%100\%%"
+    assert contains_pattern("c_plus") == r"%c\_plus%"
+    assert contains_pattern(r"a\b") == r"%a\\b%"
