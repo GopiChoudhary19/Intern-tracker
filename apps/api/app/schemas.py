@@ -64,13 +64,21 @@ class ApplicationsResponse(BaseModel):
 class CreateApplicationRequest(BaseModel):
     opportunity_id: UUID
     status: str = Field(default="saved")
-    note: str | None = None
+    note: str | None = Field(default=None, max_length=5000)
 
 
 class UpdateApplicationRequest(BaseModel):
-    status: str | None = None
-    note: str | None = None
+    status: str = Field(default=None)
+    note: str | None = Field(default=None, max_length=5000)
     next_follow_up_at: datetime | None = None
+
+    @field_validator("status", mode="before")
+    @classmethod
+    def status_cannot_be_cleared(cls, value):
+        # status is NOT NULL; an explicit null used to reach the database and fail with a 500
+        if value is None:
+            raise ValueError("status cannot be null")
+        return value
 
 
 class UserProfileResponse(BaseModel):
@@ -304,14 +312,15 @@ class SavedSearchListResponse(BaseModel):
 
 
 class CreateSavedSearchRequest(BaseModel):
+    # limits follow the saved_searches columns, so bad input is a 422 instead of a failed write
     label: str = Field(min_length=2, max_length=255)
-    search: str | None = None
-    type: str | None = None
-    mode: str | None = None
+    search: str | None = Field(default=None, max_length=255)
+    type: str | None = Field(default=None, max_length=50)
+    mode: str | None = Field(default=None, max_length=30)
     verified: bool = False
-    deadline_days: int | None = None
+    deadline_days: int | None = Field(default=None, ge=0, le=365)
     paid_only: bool = False
-    min_stipend: float | None = None
+    min_stipend: float | None = Field(default=None, ge=0, lt=100_000_000)
 
 
 class ResumeAnalyzeRequest(BaseModel):
