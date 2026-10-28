@@ -149,3 +149,18 @@ def test_saved_search_rejects_values_the_columns_cannot_hold(client, auth):
         assert client.post("/api/v1/saved-searches", json={**base, **bad}, headers=auth).status_code == 422, bad
     assert client.post("/api/v1/saved-searches", json={**base, "mode": "remote", "deadline_days": 7},
                        headers=auth).status_code == 201
+
+
+def test_recommendations_skip_closed_listings_and_ignore_case(client, auth):
+    from datetime import UTC, datetime, timedelta
+
+    from app.demo_store import DEMO_STORE
+
+    closed = DEMO_STORE.opportunities[0]
+    closed.deadline_at = datetime.now(UTC) - timedelta(days=2)
+    DEMO_STORE.user.skills = [s.upper() for s in DEMO_STORE.opportunities[1].required_skills]
+    DEMO_STORE.user.preferred_domains = [DEMO_STORE.opportunities[1].domain.upper()]
+
+    slugs = [item["slug"] for item in client.get("/api/v1/opportunities/recommended", headers=auth).json()["items"]]
+    assert closed.slug not in slugs
+    assert slugs[0] == DEMO_STORE.opportunities[1].slug, "upper-case profile entries must still match"
