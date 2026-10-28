@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { updateAdminFeedbackStatus } from "../../../../../lib/admin";
+import { isCurrentUserAdmin } from "../../../../../lib/admin-auth";
 
 type RouteProps = {
   params: {
@@ -11,15 +12,12 @@ type RouteProps = {
 const ALLOWED_STATUSES = ["new", "reviewing", "planned", "resolved"];
 
 export async function PATCH(request: Request, { params }: RouteProps) {
+  // The browser never has the admin token (it is a server secret), so the old header check rejected every
+  // request from the admin page; authorise the signed-in admin instead.
+  if (!(await isCurrentUserAdmin())) {
+    return NextResponse.json({ detail: "Admin access required" }, { status: 403 });
+  }
   try {
-    // Authentication check
-    const adminToken = request.headers.get("x-admin-token");
-    const expectedToken = process.env.INTERN_TRACKER_ADMIN_TOKEN;
-    
-    if (!expectedToken || adminToken !== expectedToken) {
-      return NextResponse.json({ detail: "Unauthorized" }, { status: 401 });
-    }
-    
     const payload = await request.json();
     
     // Validate status enum

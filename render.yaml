@@ -52,6 +52,9 @@ services:
         sync: false
       - key: INTERN_TRACKER_ADMIN_TOKEN
         sync: false
+      # comma-separated emails of the users allowed into /admin
+      - key: INTERN_TRACKER_ADMIN_EMAILS
+        sync: false
 
 databases:
   - name: intern-tracker-db
