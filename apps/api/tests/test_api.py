@@ -184,3 +184,17 @@ def test_auth_log_masks_contact_details(caplog):
     text = caplog.text
     assert "asha.verma@college.edu" not in text and "+919876543210" not in text
     assert "email=as********@college.edu" in text and "phone=***********10" in text
+
+
+def test_rate_limiter_forgets_identifiers_after_a_day():
+    from datetime import UTC, datetime, timedelta
+
+    from app import rate_limiter
+
+    now = datetime.now(UTC)
+    rate_limiter.rate_limit_store["otp_request:old@example.com"] = [now - timedelta(days=2)]
+    rate_limiter.rate_limit_store["otp_request:new@example.com"] = [now - timedelta(minutes=1)]
+    rate_limiter._last_sweep = now - timedelta(hours=1)
+    rate_limiter.sweep_stale_keys(now)
+    assert "otp_request:old@example.com" not in rate_limiter.rate_limit_store
+    assert "otp_request:new@example.com" in rate_limiter.rate_limit_store
