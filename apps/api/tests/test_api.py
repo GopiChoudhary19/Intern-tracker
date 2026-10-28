@@ -198,3 +198,15 @@ def test_rate_limiter_forgets_identifiers_after_a_day():
     rate_limiter.sweep_stale_keys(now)
     assert "otp_request:old@example.com" not in rate_limiter.rate_limit_store
     assert "otp_request:new@example.com" in rate_limiter.rate_limit_store
+
+
+def test_otp_requests_trigger_the_sweep():
+    from datetime import UTC, datetime, timedelta
+
+    from app import rate_limiter
+
+    now = datetime.now(UTC)
+    rate_limiter.rate_limit_store["otp_request:gone@example.com"] = [now - timedelta(days=3)]
+    rate_limiter._last_sweep = now - timedelta(hours=1)
+    rate_limiter.check_rate_limit("someone@example.com", limit=5, window_minutes=15)
+    assert "otp_request:gone@example.com" not in rate_limiter.rate_limit_store

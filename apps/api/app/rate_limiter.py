@@ -60,13 +60,14 @@ def check_rate_limit(
     key = f"{operation}:{identifier}"
     now = datetime.now(UTC)
     window_start = now - timedelta(minutes=window_minutes)
-    
+    sweep_stale_keys(now)
+
     # Clean up old entries
     rate_limit_store[key] = [
         req_time for req_time in rate_limit_store[key]
         if req_time > window_start
     ]
-    
+
     # Check if limit exceeded
     if len(rate_limit_store[key]) >= limit:
         raise HTTPException(
