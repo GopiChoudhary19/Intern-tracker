@@ -1,3 +1,4 @@
+import hmac
 import json
 import secrets
 import urllib.error
@@ -14,7 +15,7 @@ from app.db import get_db
 from app.demo_store import DEMO_STORE
 from app.deps import extract_bearer_token, get_current_user
 from app.models import AuthChallenge
-from app.rate_limiter import check_rate_limit
+from app.rate_limiter import check_rate_limit, record_failed_attempt
 from app.schemas import (
     AuthProvider,
     AuthProvidersResponse,
@@ -145,11 +146,14 @@ def request_otp(payload: RequestOtpRequest, background_tasks: BackgroundTasks, d
 
     channel = "email" if email else "phone"
     code = "000000" if settings.auth_debug else f"{secrets.randbelow(1000000):06d}"
-    
-    # Print the OTP to the terminal so the developer can see it locally
-    print("==================================================")
-    print(f"OTP CODE FOR {identifier}: {code}")
-    print("==================================================")
+
+    # Only print the code in debug mode: in production the logs must never contain working login codes
+    if settings.auth_debug:
+        print("==================================================")
+        print(f"OTP CODE FOR {identifier}: {code}")
+        print("==================================================")
+    elif not settings.resend_api_key:
+        print("Warning: INTERN_TRACKER_RESEND_API_KEY is not set, so this OTP cannot be delivered.")
 
     # Immediately fire off actual email processing in the background!
     if email:
@@ -172,7 +176,8 @@ def request_otp(payload: RequestOtpRequest, background_tasks: BackgroundTasks, d
         message=f"A one-time code has been prepared for your {channel}.",
         channel=channel,
         target_hint=mask_identifier(email=email, phone=phone),
-        development_code=code if (not settings.resend_api_key or settings.auth_debug) else None,
+        # returning the code lets anyone log in as anyone, so it is strictly a debug-mode convenience
+        development_code=code if settings.auth_debug else None,
     )
 
 @router.get("/auth/google/login")
@@ -203,11 +208,24 @@ def verify_otp(payload: VerifyOtpRequest, db: Session = Depends(get_db)) -> Auth
     if challenge.consumed_at is not None:
         log_auth_event("OTP_VERIFY", status="failure", details={"reason": "otp_already_used"})
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="OTP already used")
-    if challenge.expires_at <= datetime.now(UTC):
+    expires_at = challenge.expires_at
+    if expires_at.tzinfo is None:  # some drivers hand back naive UTC timestamps
+        expires_at = expires_at.replace(tzinfo=UTC)
+    if expires_at <= datetime.now(UTC):
         log_auth_event("OTP_VERIFY", status="failure", details={"reason": "otp_expired"})
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="OTP has expired")
-    if challenge.code_hash != hash_otp(payload.otp):
+    if not hmac.compare_digest(challenge.code_hash, hash_otp(payload.otp)):
         log_auth_event("OTP_VERIFY", email=challenge.email, phone=challenge.phone, status="failure", details={"reason": "invalid_otp"})
+        # a 6-digit code falls to brute force without a cap, so a challenge dies after a few wrong guesses
+        failures = record_failed_attempt(str(challenge.id), window_minutes=settings.auth_otp_ttl_minutes)
+        if failures >= settings.auth_otp_verify_attempt_limit:
+            challenge.consumed_at = datetime.now(UTC)
+            db.add(challenge)
+            db.commit()
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="Too many wrong codes. Request a new one-time code.",
+            )
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid OTP")
     if payload.email and challenge.email and payload.email.strip().lower() != challenge.email:
         log_auth_event("OTP_VERIFY", status="failure", details={"reason": "email_mismatch"})

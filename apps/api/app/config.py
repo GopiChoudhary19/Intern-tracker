@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     auth_session_ttl_days: int = 30
     auth_otp_request_limit: int = 5
     auth_otp_request_window_minutes: int = 15
+    auth_otp_verify_attempt_limit: int = 5
     admin_token: str | None = None
     google_oauth_url: str | None = None
     github_oauth_url: str | None = None
