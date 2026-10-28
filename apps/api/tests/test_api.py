@@ -135,3 +135,17 @@ def test_null_lists_in_profile_update_become_empty_lists():
 def test_public_listings_keep_their_cache_policy_and_private_data_is_not_cached(client, auth):
     assert client.get("/api/v1/opportunities").headers["cache-control"] == "public, max-age=60"
     assert "no-store" in client.get("/api/v1/me", headers=auth).headers["cache-control"]
+
+
+def test_application_status_cannot_be_cleared(client, auth):
+    app_id = client.get("/api/v1/applications", headers=auth).json()["items"][0]["id"]
+    assert client.patch(f"/api/v1/applications/{app_id}", json={"status": None}, headers=auth).status_code == 422
+    assert client.patch(f"/api/v1/applications/{app_id}", json={"note": "Follow up Friday"}, headers=auth).status_code == 200
+
+
+def test_saved_search_rejects_values_the_columns_cannot_hold(client, auth):
+    base = {"label": "Remote AI"}
+    for bad in ({"mode": "x" * 31}, {"deadline_days": -3}, {"min_stipend": -1}, {"search": "q" * 256}):
+        assert client.post("/api/v1/saved-searches", json={**base, **bad}, headers=auth).status_code == 422, bad
+    assert client.post("/api/v1/saved-searches", json={**base, "mode": "remote", "deadline_days": 7},
+                       headers=auth).status_code == 201
