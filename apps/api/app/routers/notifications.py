@@ -36,7 +36,8 @@ def list_notifications(
 
     for item in applications:
         deadline = item.opportunity.deadline_at
-        if deadline and deadline <= now + timedelta(days=7):
+        # a deadline that has already passed is not "approaching" - those applications are closed
+        if deadline and now <= deadline <= now + timedelta(days=7):
             notifications.append(
                 NotificationItem(
                     id=f"deadline-{item.id}",

@@ -322,8 +322,9 @@ class DemoStore:
             ]
             
         if deadline_days is not None:
-            cutoff = datetime.now(UTC) + timedelta(days=deadline_days)
-            items = [item for item in items if item.deadline_at is not None and item.deadline_at <= cutoff]
+            now = datetime.now(UTC)
+            cutoff = now + timedelta(days=deadline_days)
+            items = [item for item in items if item.deadline_at is not None and now <= item.deadline_at <= cutoff]
             
         if sort_by == 'deadline_asc':
             items = sorted(items, key=lambda item: item.deadline_at or datetime.max.replace(tzinfo=UTC))
