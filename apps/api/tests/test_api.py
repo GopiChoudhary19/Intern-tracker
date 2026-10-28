@@ -172,3 +172,15 @@ def test_search_pattern_escapes_like_wildcards():
     assert contains_pattern(" 100% ") == r"%100\%%"
     assert contains_pattern("c_plus") == r"%c\_plus%"
     assert contains_pattern(r"a\b") == r"%a\\b%"
+
+
+def test_auth_log_masks_contact_details(caplog):
+    import logging
+
+    from app.audit_log import log_auth_event
+
+    with caplog.at_level(logging.INFO, logger="auth"):
+        log_auth_event("OTP_REQUEST", email="asha.verma@college.edu", phone="+919876543210")
+    text = caplog.text
+    assert "asha.verma@college.edu" not in text and "+919876543210" not in text
+    assert "email=as********@college.edu" in text and "phone=***********10" in text
