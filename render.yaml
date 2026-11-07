@@ -43,7 +43,7 @@ services:
       - key: NEXT_TELEMETRY_DISABLED
         value: "1"
       - key: NEXT_PUBLIC_API_BASE_URL
-        value: https://intern-tracker-api.onrender.com/api/v1
+        value: https://intern-tracker-api-o903.onrender.com/api/v1
       - key: INTERN_TRACKER_ADMIN_TOKEN
         sync: false
       # comma-separated emails of the users allowed into /admin
