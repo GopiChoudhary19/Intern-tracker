@@ -4,6 +4,8 @@
 
 A student opportunity discovery platform for internships, hackathons, coding contests, scholarships, workshops and tech events.
 
+**Live demo: [intern-tracker-web.onrender.com](https://intern-tracker-web.onrender.com)** · sign in with any email and code `000000`. It runs in demo mode (in-memory data that resets on restart) on Render's free tier, so the first load after a quiet spell takes ~50 seconds.
+
 ![Dashboard](docs/screenshots/dashboard.jpg)
 
 | Opportunity feed | |
