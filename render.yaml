@@ -35,9 +35,6 @@ services:
     runtime: node
     plan: free
     rootDir: apps/web
-    cache:
-      - node_modules
-      - .next/cache
     buildCommand: npm install && npm run build
     startCommand: npm run start
     envVars:
