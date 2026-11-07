@@ -10,12 +10,9 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.12.13
-      - key: INTERN_TRACKER_DATABASE_URL
-        fromDatabase:
-          name: intern-tracker-db
-          property: connectionString
+      # public demo: in-memory store, sign in with OTP 000000, data resets on restart
       - key: INTERN_TRACKER_DEMO_MODE
-        value: database
+        value: demo
       - key: INTERN_TRACKER_AUTH_DEBUG
         value: "false"
       - key: INTERN_TRACKER_AUTH_OTP_REQUEST_LIMIT
@@ -25,7 +22,7 @@ services:
       - key: INTERN_TRACKER_ADMIN_TOKEN
         sync: false
       - key: INTERN_TRACKER_CORS_ALLOWED_ORIGINS
-        sync: false
+        value: https://intern-tracker-web.onrender.com
       - key: INTERN_TRACKER_GOOGLE_OAUTH_URL
         sync: false
       - key: INTERN_TRACKER_GITHUB_OAUTH_URL
@@ -49,13 +46,9 @@ services:
       - key: NEXT_TELEMETRY_DISABLED
         value: "1"
       - key: NEXT_PUBLIC_API_BASE_URL
-        sync: false
+        value: https://intern-tracker-api.onrender.com/api/v1
       - key: INTERN_TRACKER_ADMIN_TOKEN
         sync: false
       # comma-separated emails of the users allowed into /admin
       - key: INTERN_TRACKER_ADMIN_EMAILS
         sync: false
-
-databases:
-  - name: intern-tracker-db
-    plan: free
